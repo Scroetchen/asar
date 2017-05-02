@@ -1,12 +1,23 @@
-group 'aaaa'
-version '1.0-SNAPSHOT'
+buildscript {
+    repositories {
+        jcenter()
+    }
+}
 
-apply plugin: 'java'
+plugins {
+    id'com.github.johnrengelman.shadow' version '1.2.4'
+    id'java'
+}
+
+group 'asar'
+version '1.0'
+
 
 sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 dependencies {

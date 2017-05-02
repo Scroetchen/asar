@@ -29,7 +29,7 @@ public class AsarArchive implements Iterable<VirtualFile> {
         this.path = file.getAbsolutePath();
         this.bytes = Utils.readAllBytes(file);
         this.header = readHeader(bytes);
-        this.baseOffset = header.size+4;
+        this.baseOffset = header.size+8;
         try {
             files(this, "", header.json.getJSONObject("files"), files);
         } catch(JSONException ex) {
@@ -105,7 +105,7 @@ public class AsarArchive implements Iterable<VirtualFile> {
             if(filesObj != null) {
                 files(asar, path + "/" + key, filesObj, files);
             } else {
-                files.add(new VirtualFile(asar, path+"/"+key, Integer.parseInt(o.getString("offset")), o.getInt("size")));
+                files.add(new VirtualFile(asar, path+"/"+key, Integer.parseInt(o.getString("offset"))+asar.baseOffset, o.getInt("size")));
             }
         }
     }
