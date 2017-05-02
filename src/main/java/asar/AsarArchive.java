@@ -10,6 +10,9 @@ import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.*;
 
+/**
+ * Represents a .asar file
+ */
 public class AsarArchive implements Iterable<VirtualFile> {
     private final String path;
     /*package*/ final byte[] bytes;
@@ -48,18 +51,38 @@ public class AsarArchive implements Iterable<VirtualFile> {
         return false;
     }
 
+    /**
+     * Returns the path of the loaded asar file
+     *
+     * @return The path
+     */
     public String getPath() {
         return path;
     }
 
+    /**
+     * Returns the full contents of this file
+     *
+     * @return The contents
+     */
     public byte[] getBytes() {
         return bytes;
     }
 
+    /**
+     * Returns the {@link Header} of this file
+     *
+     * @return The header
+     */
     public Header getHeader() {
         return header;
     }
 
+    /**
+     * Returns the base offset for the files inside this file, in bytes
+     *
+     * @return The offset
+     */
     public int getBaseOffset() {
         return baseOffset;
     }
@@ -87,6 +110,9 @@ public class AsarArchive implements Iterable<VirtualFile> {
         }
     }
 
+    /**
+     * Represents the header of an asar file
+     */
     public static class Header {
         private final int size;
         private final JSONObject json;
@@ -96,14 +122,22 @@ public class AsarArchive implements Iterable<VirtualFile> {
             this.json = json;
         }
 
+        /**
+         * Returns the size of the header, in bytes
+         *
+         * @return The size
+         */
         public int getSize() {
             return size;
         }
 
+        /**
+         * Returns the {@link JSONObject} of this header
+         *
+         * @return The {@link JSONObject}
+         */
         public JSONObject getJson() {
             return json;
         }
     }
-
-
 }

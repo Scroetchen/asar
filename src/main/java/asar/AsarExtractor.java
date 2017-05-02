@@ -7,13 +7,31 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 
+/**
+ * Extracts files from an {@link AsarArchive}
+ */
 public class AsarExtractor {
     private AsarExtractor(){}
 
+    /**
+     * Extracts a single file from an {@link AsarArchive}
+     *
+     * @see AsarExtractor#extract(AsarArchive, String, File)
+     */
     public static void extract(AsarArchive asar, String filePath, String destination) throws IOException {
         extract(asar, filePath, new File(destination));
     }
 
+    /**
+     * Extracts a single file from an {@link AsarArchive}
+     *
+     * @param asar The source
+     * @param filePath The path inside the asar file of the wanted file
+     * @param destination The {@link File} to save the extracted file
+     *
+     * @throws IOException If there's an error writing the file
+     * @throws IllegalArgumentException If the path to extract doesn't exist
+     */
     public static void extract(AsarArchive asar, String filePath, File destination) throws IOException {
         if(asar == null || filePath == null || destination == null) throw new NullPointerException();
         destination.getParentFile().mkdirs();
@@ -39,10 +57,23 @@ public class AsarExtractor {
         Utils.writeBytes(destination, fileBytes);
     }
 
+    /**
+     * Extracts all the contents of an {@link AsarArchive} to a given folder
+     *
+     * @see AsarExtractor#extractAll(AsarArchive, File)
+     */
     public static void extractAll(AsarArchive asar, String destination) throws IOException {
         extractAll(asar, new File(destination));
     }
 
+    /**
+     * Extracts all the contents of an {@link AsarArchive} to a given folder
+     *
+     * @param asar The source asar
+     * @param destination The destination folder
+     * @throws IOException If there's an error writing the files
+     * @throws IllegalArgumentException If the destination is invalid
+     */
     public static void extractAll(AsarArchive asar, File destination) throws IOException {
         if(asar == null || destination == null) throw new NullPointerException();
         if(destination.exists() && !destination.isDirectory())
