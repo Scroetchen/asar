@@ -1,16 +1,14 @@
 package asar;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
 
 /**
  * Extracts files from an {@link AsarArchive}
  */
-public class AsarExtractor {
+public final class AsarExtractor {
     private AsarExtractor(){}
 
     /**
@@ -34,27 +32,15 @@ public class AsarExtractor {
      */
     public static void extract(AsarArchive asar, String filePath, File destination) throws IOException {
         if(asar == null || filePath == null || destination == null) throw new NullPointerException();
-        destination.getParentFile().mkdirs();
-        String[] path = filePath.split("/");
-        JSONObject token = asar.getHeader().getJson();
-        for(String s : path) {
-            JSONObject obj1 = token.optJSONObject("files");
-            if(obj1 == null) throw new IllegalArgumentException("JSONObject \"files\" not found");
-            if((token = obj1.optJSONObject(s)) == null) throw new IllegalArgumentException("JSONObject \"" + s + "\" not found");
+        VirtualFile vf = null;
+        for(VirtualFile v : asar) {
+            if(v.getPath().equals(filePath)) {
+                vf = v;
+                break;
+            }
         }
-
-        int size;
-        int offset;
-        try {
-            size = token.getInt("size");
-            offset = asar.getBaseOffset() + token.getInt("offset");
-        } catch(JSONException e) {
-            throw new IllegalArgumentException("Invalid ASAR header", e);
-        }
-
-        byte[] fileBytes = Arrays.copyOfRange(asar.getBytes(), offset, offset+size);
-
-        Utils.writeBytes(destination, fileBytes);
+        if(vf == null) throw new IllegalArgumentException("No file " + filePath + " in the asar archive");
+        extract(vf, destination);
     }
 
     /**
@@ -80,8 +66,21 @@ public class AsarExtractor {
             throw new IllegalArgumentException("destination must be a directory or not exist");
         for(VirtualFile f : asar) {
             File d = new File(destination, f.getPath());
-            d.getParentFile().mkdirs();
-            Utils.writeBytes(d, f.getBytes());
+            if(!d.getParentFile().mkdirs()) {
+                throw new IOException("Error creating parent directories");
+            }
+            extract(f, d);
+        }
+    }
+
+    private static void extract(VirtualFile vf, File to) throws IOException {
+        if(!to.getParentFile().mkdirs()) {
+            throw new IOException("Error creating parent directories");
+        }
+        try(RandomAccessFile raf = new RandomAccessFile(to, "rw");
+            FileChannel fc = raf.getChannel()) {
+            vf.read(fc.map(FileChannel.MapMode.READ_WRITE, 0, vf.getSize()));
         }
     }
 }
+

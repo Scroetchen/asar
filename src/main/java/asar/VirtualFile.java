@@ -1,35 +1,21 @@
 package asar;
 
-import java.util.Arrays;
-import java.util.Objects;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Represents a file inside an {@link AsarArchive}
  */
-public class VirtualFile {
+public final class VirtualFile {
     private final AsarArchive asar;
     private final String path;
-    private final int offset, size;
+    private final long offset, size;
 
-    VirtualFile(AsarArchive asar, String path, int offset, int size) {
+    VirtualFile(AsarArchive asar, String path, long offset, long size) {
         this.asar = asar;
         this.path = path;
         this.offset = offset;
         this.size = size;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if(other instanceof VirtualFile) {
-            VirtualFile o = (VirtualFile)other;
-            return Objects.equals(o.asar, asar) && Objects.equals(o.path, path);
-        }
-        return false;
-    }
-
-    @Override
-    public String toString() {
-        return "AsarFile[path = " + path + ", offset = " + offset + ", size = " + size + "]";
     }
 
     /**
@@ -46,7 +32,7 @@ public class VirtualFile {
      *
      * @return The offset
      */
-    public int getOffset() {
+    public long getOffset() {
         return offset;
     }
 
@@ -55,18 +41,36 @@ public class VirtualFile {
      *
      * @return The size
      */
-    public int getSize() {
+    public long getSize() {
         return size;
     }
 
     /**
-     * Returns the bytes of this file
+     * Reads the contents of this file to the given {@link ByteBuffer}
      *
-     * Be aware they are copied on every call to this method
+     * @param buffer The buffer to store the contents
      *
-     * @return The bytes
+     * @return The given buffer, for chaining calls
      */
-    public byte[] getBytes() {
-        return Arrays.copyOfRange(asar.bytes, offset, offset+size);
+    public ByteBuffer read(ByteBuffer buffer) {
+        try {
+            return buffer.put(asar.contents(offset, size));
+        } catch(IOException e) {
+            throw new AsarException("Error reading", e);
+        }
+    }
+
+    /**
+     * Returns a {@link byte[]} with the contents of this file
+     *
+     * @return The contents
+     *
+     * @see #read(ByteBuffer)
+     */
+    public byte[] read() {
+        if(size > Integer.MAX_VALUE) {
+            throw new IllegalStateException("Cannot read to a byte array a file that's longer than 2GB");
+        }
+        return read(ByteBuffer.allocate((int)size)).array();
     }
 }
